@@ -1,0 +1,10 @@
+# langchain
+streamlit
+langchain
+wikipedia
+
+# GPT file
+openai
+wikipedia-api
+
+requests
