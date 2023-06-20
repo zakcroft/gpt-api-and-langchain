@@ -1,6 +1,7 @@
 import os
 import json
 import openai
+import wikipedia
 from dotenv import load_dotenv
 from langchain.utilities import WikipediaAPIWrapper
 
@@ -26,7 +27,7 @@ def chat(input):
                     "unit": {"type": "string", "enum": ["celsius", "fahrenheit"]},
                     "population": {"type": "number"},
                 },
-                "required": ["location"],
+                "required": ["location", "population"],
             },
         }
     ]
@@ -38,7 +39,6 @@ def chat(input):
         functions=functions,
         function_call="auto",  # auto is default, but we'll be explicit
     )
-
 
     response_message = response["choices"][0]["message"]
     print('response_message =======', response)
@@ -75,21 +75,24 @@ def chat(input):
             messages=messages,
         )  # get a new response from GPT where it can see the function response
 
-        print("second_response")
+        print("=second_response=", second_response)
         return second_response
     else:
-        print("NO FUNCTION CALLING TODAY!")
+        print("=NO FUNCTION CALLING=")
         return response.choices[0].message["content"]
 
 def get_info_from_wiki(location, population, unit="fahrenheit"):
-
-    print("=====get_info_from_wiki")
+    print("=get_info_from_wiki=")
 
     wiki = WikipediaAPIWrapper(doc_content_chars_max=5000, load_all_available_meta=True)
     wiki_research = wiki.run("Get further info on this location. Give back the time" + location)
 
+    print('=wiki response=', wiki_research)
+    
     return json.dumps(wiki_research)
 
 
 output = chat("Tell me about france")
+output2 = chat("Tell me about ice")
 print('===', output)
+print('===', output2)
