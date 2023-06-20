@@ -2,6 +2,7 @@
 streamlit
 langchain
 wikipedia
+python-dotenv
 
 # GPT file
 openai

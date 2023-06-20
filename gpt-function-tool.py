@@ -88,7 +88,7 @@ def get_info_from_wiki(location, population, unit="fahrenheit"):
     wiki_research = wiki.run("Get further info on this location. Give back the time" + location)
 
     print('=wiki response=', wiki_research)
-    
+
     return json.dumps(wiki_research)
 
 
