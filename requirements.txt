@@ -9,3 +9,8 @@ openai
 wikipedia-api
 
 requests
+tiktoken
+
+# embedding 
+faiss-cpu
+pinecone-clien

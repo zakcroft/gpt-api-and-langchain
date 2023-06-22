@@ -17,6 +17,11 @@ from langchain.chat_models import ChatOpenAI
 
 # Chains
 from langchain.chains import LLMChain, SequentialChain
+from langchain.chains.router import MultiPromptChain
+
+# router
+from langchain.chains.router.llm_router import LLMRouterChain, RouterOutputParser
+from langchain.chains.router.multi_prompt_prompt import MULTI_PROMPT_ROUTER_TEMPLATE
 
 load_dotenv(find_dotenv())
 
@@ -57,12 +62,12 @@ overall_chain = SequentialChain(
     output_variables=["review", "comment", "summary", "german_translation"],
 )
 
-out = overall_chain({"dish_name": "Pizza Salami",
-                    "experience": "It was awful!"})
+# out = overall_chain({"dish_name": "Pizza Salami",
+#                     "experience": "It was awful!"})
 
 # print(out)
 
-print(json.dumps(out, indent=4))
+# print(json.dumps(out, indent=4))
 
 # {
 #     "dish_name": "Pizza Salami",
@@ -72,3 +77,74 @@ print(json.dumps(out, indent=4))
 #     "summary": "The reviewer had an awful experience with a Pizza Salami from a well-known restaurant, with dry and flavorless crust and bland sauce, as well as thin and dry salami slices with a bad taste.",
 #     "german_translation": "Der Rezensent hatte eine schreckliche Erfahrung mit einer Pizza Salami aus einem bekannten Restaurant, mit trockenem und geschmacklosem Teig und fade So\u00dfe, sowie d\u00fcnnen und trockenen Salamischeiben mit schlechtem Geschmack."
 # }
+
+
+# 2 :
+
+llmNorm = OpenAI(model_name="text-davinci-001")
+
+positive_template = """You are an AI that focuses on the positive side of things. \
+Whenever you analyze a text, you look for the positive aspects and highlight them. \
+Here is the text:
+{input}"""
+
+neutral_template = """You are an AI that has a neutral perspective. You just provide a balanced analysis of the text, \
+not favoring any positive or negative aspects. Here is the text:
+{input}"""
+
+negative_template = """You are an AI that is designed to find the negative aspects in a text. \
+You analyze a text and show the potential downsides. Here is the text:
+{input}"""
+
+prompt_infos = [
+    {
+        "name": "positive",
+        "description": "Good for analyzing positive sentiments",
+        "prompt_template": positive_template,
+    },
+    {
+        "name": "neutral",
+        "description": "Good for analyzing neutral sentiments",
+        "prompt_template": neutral_template,
+    },
+    {
+        "name": "negative",
+        "description": "Good for analyzing negative sentiments",
+        "prompt_template": negative_template,
+    },
+]
+
+
+destination_chains = {}
+for p_info in prompt_infos:
+    name = p_info["name"]
+    prompt_template = p_info["prompt_template"]
+    prompt = PromptTemplate(template=prompt_template)
+    chain = LLMChain(llm=llmNorm, prompt=prompt)
+    destination_chains[name] = chain
+destination_chains
+
+
+destinations = [f"{p['name']}: {p['description']}" for p in prompt_infos]
+destinations_str = "\n".join(destinations)
+router_template = MULTI_PROMPT_ROUTER_TEMPLATE.format(
+    destinations=destinations_str)
+
+router_prompt = PromptTemplate(
+    template=router_template,
+    input_variables=["input"],
+    output_parser=RouterOutputParser(),
+)
+
+router_chain = LLMRouterChain.from_llm(llmNorm, router_prompt)
+
+chain = MultiPromptChain(
+    router_chain=router_chain,
+    destination_chains=destination_chains,
+    default_chain=destination_chains["neutral"],
+    verbose=True,
+)
+
+routerOut = chain.run("I ordered Pizza Salami for 9.99$ and it was awesome!")
+
+print(json.dumps(routerOut, indent=4))
