@@ -75,7 +75,7 @@ template = """
     text: {input}
 """
 
-llm = OpenAI(model_name="text-ada-001")
+llm = OpenAI(model_name="text-davinci-003")
 llmChat = ChatOpenAI(model_name="gpt-3.5-turbo")
 
 prompt_template = ChatPromptTemplate.from_template(template=template)
