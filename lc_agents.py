@@ -41,7 +41,7 @@ from langchain.callbacks.manager import AsyncCallbackManagerForToolRun, Callback
 load_dotenv(find_dotenv())
 
 # settings ===
-index_name = "langchain-tut"
+index_name = "resturant"
 pinecone.init(
     api_key=os.environ["PINECONE_API_KEY"],
     environment=os.environ["PINECONE_ENV"],
