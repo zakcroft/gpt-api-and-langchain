@@ -129,8 +129,8 @@ class CustomSearchTool(BaseTool):
     def _run(self, query: str, run_manager: Optional[CallbackManagerForToolRun] = None) -> str:
         store = vector_store.as_retriever(search_type="mmr")
         docs = store.get_relevant_documents(query)
-        print(docs)
-        print("===========================")
+        # print(docs)
+        # print("===========================")
         text_list = [doc.page_content for doc in docs]
         # print(text_list)
         return "\n".join(text_list)
